@@ -106,7 +106,3 @@ Access the Django admin panel at `/admin` with superuser credentials to:
 - Edit/delete listings
 - Manage categories
 - View and moderate bids and comments
-
-## License
-
-MIT License
