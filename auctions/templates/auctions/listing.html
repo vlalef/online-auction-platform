@@ -1,0 +1,83 @@
+{% extends "auctions/layout.html" %}
+
+{% block main %}
+    <div class="container">
+        <h2>{{ listing.title }}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                {% if listing.image_url %}
+                    <img src="{{ listing.image_url }}" class="img-fluid" alt="{{ listing.title }}">
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <p>{{ listing.description }}</p>
+                <p><strong>Current Price: ${{ listing.current_price }}</strong></p>
+                {% if not listing.is_active %}
+                    {% if user == listing.winner %}
+                        <div class="alert alert-success">
+                            Congratulations! You won this auction!
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            This auction has ended. Winner: {{ listing.winner.username }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                <p><strong>Category: </strong>{{ listing.category.name }}</p>
+                <p><strong>Created by: </strong>{{ listing.creator.username }}</p>
+
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'toggle_watchlist' listing.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if is_watched %}btn-danger{% else %}btn-primary{% endif %}">
+                            {% if is_watched %}Remove from Watchlist{% else %}Add to Watchlist{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'listing' listing.id %}">
+                        {% csrf_token %}
+                        <div class="input-group mt-2">
+                            <input type="number" step="0.01" name="bid_amount" class="form-control"
+                                   placeholder="Enter your bid">
+                            <button type="submit" name="bid" class="btn btn-success">Place Bid</button>
+                        </div>
+                    </form>
+                    {% if user.is_authenticated and user == listing.creator and not listing.is_active %}
+                        <form method="post" action="{% url 'open_auction' listing.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success mt-2">Open Auction</button>
+                        </form>
+                    {% endif %}
+                    {% if user.is_authenticated and user == listing.creator and listing.is_active %}
+                        <form method="post" action="{% url 'close_auction' listing.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger mt-2">Close Auction</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <ul class="list-group">
+                    {% for comment in comments %}
+                        <li class="list-group-item">
+                            <strong>{{ comment.user.username }}</strong>: {{ comment.text }}
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No comments yet.</li>
+                    {% endfor %}
+                </ul>
+
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'listing' listing.id %}">
+                        {% csrf_token %}
+                        <div class="form-group mt-2">
+                            <textarea name="text" class="form-control" placeholder="Add a comment"></textarea>
+                            <button type="submit" name="comment" class="btn btn-primary mt-2">Submit</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
